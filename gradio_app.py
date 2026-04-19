@@ -31,6 +31,9 @@ import os
 from pathlib import Path
 
 import gradio as gr
+from fastapi import Request
+
+from book_log import install_log_routes
 
 
 BASE = Path(__file__).parent
@@ -121,6 +124,18 @@ def build_gradio_app() -> gr.Blocks:
     return demo
 
 
+def _gradio_session_username(demo: gr.Blocks, request: Request) -> str | None:
+    # Gradio stores {session_token: username} on demo.app.tokens after the
+    # user logs in; the token rides along in an "access-token-*" cookie.
+    tokens = getattr(demo.app, "tokens", None) or {}
+    for name, value in request.cookies.items():
+        if name.startswith("access-token"):
+            user = tokens.get(value)
+            if user:
+                return user
+    return None
+
+
 def main() -> None:
     user = os.environ.get("READER_USER", "reader")
     password = os.environ.get("READER_PASSWORD")
@@ -140,11 +155,18 @@ def main() -> None:
     # Gradio 6 moved `theme` and `css` from the Blocks constructor to launch(),
     # and dropped `show_api`. Older versions accept them on Blocks but not in
     # launch. Try-then-fallback so the same script works on 4.x/5.x and 6.x.
+    # prevent_thread_lock lets launch() return so we can attach the /api/log/*
+    # route to demo.app (which only exists after launch sets it up).
+    # strict_cors=False is required for the book-log fetch: the SPA runs in a
+    # srcdoc iframe whose origin is the string "null", and strict mode refuses
+    # "null" origins when the server is bound to localhost.
     launch_kwargs = dict(
         server_name=os.environ.get("HOST", "0.0.0.0"),
         server_port=int(os.environ.get("PORT", "7860")),
         share=share,
         auth=(user, password),
+        strict_cors=False,
+        prevent_thread_lock=True,
     )
     try:
         demo.launch(theme=gr.themes.Base(), css=STRIP_CSS, **launch_kwargs)
@@ -153,6 +175,12 @@ def main() -> None:
         # them applied and launch without those kwargs.
         demo = _rebuild_with_theme_css()
         demo.launch(**launch_kwargs)
+
+    install_log_routes(
+        demo.app,
+        resolve_username=lambda req: _gradio_session_username(demo, req),
+    )
+    demo.block_thread()
 
 
 def _rebuild_with_theme_css() -> gr.Blocks:

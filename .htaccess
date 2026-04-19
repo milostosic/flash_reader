@@ -1,0 +1,15 @@
+# Flash Reader: rewrite clean /api/log/* URLs onto their PHP handlers so
+# the client code stays backend-agnostic — the same URLs work whether the
+# backend is PHP (this setup) or Python (serve.py / gradio_app.py).
+
+RewriteEngine On
+
+# Some FastCGI / LSAPI setups drop the Authorization header before PHP
+# sees it, which blanks out $_SERVER['PHP_AUTH_USER']. This re-exposes it.
+RewriteCond %{HTTP:Authorization} .+
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Exact-match rewrites only; static assets (index.html, app.js, ...) are
+# untouched.
+RewriteRule ^api/log/book-added$ api/log/book-added.php [L]
+RewriteRule ^api/log/ping$       api/log/ping.php       [L]

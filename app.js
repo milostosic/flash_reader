@@ -425,6 +425,7 @@
           updatedAt: Date.now(),
         };
         await DB.put(book);
+        logBookAdded(book);
         showStatus('Added "' + title + '" (' + words.length.toLocaleString() + ' words)');
       } catch (err) {
         console.error(err);
@@ -676,6 +677,51 @@
       return blob;
     } catch (_) {
       return null;
+    }
+  }
+
+  // Fire-and-forget audit log. The SPA runs inside a srcdoc iframe whose
+  // origin is "null", so relative URLs don't resolve to the Gradio server
+  // (baseURI is about:srcdoc) and the request is treated as cross-origin.
+  // Fix: build an absolute URL from the parent's origin and send the auth
+  // cookie via credentials:'include'. Needs strict_cors=False server-side
+  // so the "null" origin is accepted.
+  const LOG_BASE = (function () {
+    try {
+      const ctx = window.parent && window.parent !== window ? window.parent : window;
+      const origin = ctx.location.origin;
+      return origin && origin !== 'null' ? origin : '';
+    } catch (_) {
+      return '';
+    }
+  })();
+  console.log('[flash-reader] log base URL =', JSON.stringify(LOG_BASE));
+
+  function logBookAdded(book) {
+    if (!LOG_BASE) {
+      console.warn('[flash-reader] skipping book-added log: no usable origin');
+      return;
+    }
+    const url = LOG_BASE + '/api/log/book-added';
+    const payload = {
+      title: book.title,
+      author: book.author,
+      wordCount: book.wordCount,
+    };
+    console.log('[flash-reader] POST', url, payload);
+    try {
+      fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).then((r) => {
+        console.log('[flash-reader] book-added →', r.status);
+      }).catch((err) => {
+        console.warn('[flash-reader] book-added failed:', err);
+      });
+    } catch (err) {
+      console.warn('[flash-reader] book-added threw:', err);
     }
   }
 

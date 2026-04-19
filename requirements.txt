@@ -1,1 +1,7 @@
+# Core server deps — needed by both serve.py and gradio_app.py.
+fastapi
+uvicorn[standard]
+
+# Only needed by gradio_app.py (the Gradio-wrapped launcher). Skip it if
+# you're only running serve.py.
 gradio>=4.44
