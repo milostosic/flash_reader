@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0f0f12" />
+<link rel="icon" type="image/svg+xml" href="logo.svg" />
+<title>Flash Reader</title>
+<script>
+  // Apply the theme before the stylesheet is evaluated to avoid a flash.
+  (function () {
+    var VALID = ['dark', 'light', 'pastel-dark', 'pastel-light'];
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (_) {}
+    var theme = VALID.indexOf(saved) >= 0
+      ? saved
+      : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.dataset.theme = theme;
+  })();
+</script>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <!-- Library view -->
+  <section id="library-view" class="view active">
+    <header class="lib-header">
+      <div class="lib-brand">
+        <img class="lib-logo" src="logo.svg" alt="" width="28" height="28" />
+        <h1>Flash Reader</h1>
+      </div>
+      <input id="book-search" class="book-search" type="search" placeholder="Search books…" autocomplete="off" aria-label="Search books" />
+      <div class="lib-actions">
+        <div class="theme-select">
+          <button type="button" class="icon-btn theme-toggle" aria-label="Change theme" title="Change theme" aria-haspopup="menu" aria-expanded="false">&#x25D0;</button>
+          <div class="theme-panel" role="menu" hidden>
+            <button type="button" role="menuitemradio" data-theme-value="dark">
+              <span class="theme-swatch" style="background: linear-gradient(135deg, #0f0f12 50%, #3F4389 50%)"></span>
+              <span>Dark</span>
+            </button>
+            <button type="button" role="menuitemradio" data-theme-value="light">
+              <span class="theme-swatch" style="background: linear-gradient(135deg, #f7f7f9 50%, #3F4389 50%)"></span>
+              <span>Light</span>
+            </button>
+            <button type="button" role="menuitemradio" data-theme-value="pastel-dark">
+              <span class="theme-swatch" style="background: linear-gradient(135deg, #221C30 50%, #B7A9E0 50%)"></span>
+              <span>Pastel Dark</span>
+            </button>
+            <button type="button" role="menuitemradio" data-theme-value="pastel-light">
+              <span class="theme-swatch" style="background: linear-gradient(135deg, #FAF3EE 50%, #8D95D6 50%)"></span>
+              <span>Pastel Light</span>
+            </button>
+          </div>
+        </div>
+        <label class="btn primary" for="file-input">
+          <span>+ Add book</span>
+          <input id="file-input" type="file" accept=".epub,.pdf,.txt,.html,.htm,.md,application/epub+zip,application/pdf,text/plain,text/html,text/markdown" multiple hidden />
+        </label>
+      </div>
+    </header>
+
+    <div id="upload-status" class="upload-status" hidden></div>
+
+    <ul id="book-list" class="book-list" aria-live="polite"></ul>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <h2>No books yet</h2>
+      <p>Drop a file anywhere, or tap <strong>+ Add book</strong>.</p>
+      <p class="muted">Supports EPUB, PDF, TXT, HTML, Markdown.</p>
+    </div>
+
+    <div id="no-matches" class="empty-state" hidden>
+      <h2>No matches</h2>
+      <p class="muted">Try a different search term.</p>
+    </div>
+
+    <div id="drop-overlay" class="drop-overlay" aria-hidden="true">
+      <div class="drop-overlay-inner">
+        <div class="drop-overlay-title">Drop file to import</div>
+        <div class="drop-overlay-formats">EPUB · PDF · TXT · HTML · Markdown</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reader view -->
+  <section id="reader-view" class="view">
+    <header class="reader-header">
+      <button id="back-btn" class="icon-btn" aria-label="Back to library">&larr;</button>
+      <div class="reader-title" id="reader-title"></div>
+      <div class="reader-progress" id="reader-progress">0%</div>
+      <div class="theme-select">
+        <button type="button" class="icon-btn theme-toggle" aria-label="Change theme" title="Change theme" aria-haspopup="menu" aria-expanded="false">&#x25D0;</button>
+        <div class="theme-panel" role="menu" hidden>
+          <button type="button" role="menuitemradio" data-theme-value="dark">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #0f0f12 50%, #3F4389 50%)"></span>
+            <span>Dark</span>
+          </button>
+          <button type="button" role="menuitemradio" data-theme-value="light">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #f7f7f9 50%, #3F4389 50%)"></span>
+            <span>Light</span>
+          </button>
+          <button type="button" role="menuitemradio" data-theme-value="pastel-dark">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #221C30 50%, #B7A9E0 50%)"></span>
+            <span>Pastel Dark</span>
+          </button>
+          <button type="button" role="menuitemradio" data-theme-value="pastel-light">
+            <span class="theme-swatch" style="background: linear-gradient(135deg, #FAF3EE 50%, #8D95D6 50%)"></span>
+            <span>Pastel Light</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="progress-bar" aria-hidden="true">
+      <div id="progress-bar-fill" class="progress-bar-fill"></div>
+    </div>
+
+    <div class="reader-stats" aria-live="off">
+      <span class="reader-stat"><span class="reader-stat-label">read</span> <span id="stat-read">0s</span></span>
+      <span class="reader-stat-sep">·</span>
+      <span class="reader-stat"><span id="stat-left">—</span> <span class="reader-stat-label">left</span></span>
+      <span class="reader-stat-sep">·</span>
+      <span class="reader-stat"><span id="stat-total">—</span> <span class="reader-stat-label">total</span></span>
+      <span class="reader-stat-sep">·</span>
+      <span class="reader-stat"><span class="reader-stat-label">at</span> <span id="stat-wpm">500</span> <span class="reader-stat-label">wpm</span></span>
+    </div>
+
+    <main class="reader-stage">
+      <div id="word-display" class="word-display" aria-live="off">
+        <span class="word-before" id="word-before"></span><span class="word-pivot" id="word-pivot"></span><span class="word-after" id="word-after"></span>
+      </div>
+      <div class="guide-line" aria-hidden="true"></div>
+
+      <aside id="cover-side" class="cover-side" aria-hidden="true" hidden>
+        <img id="cover-side-img" alt="" />
+      </aside>
+
+      <aside id="text-preview" class="text-preview" aria-hidden="true">
+        <div id="text-preview-inner" class="text-preview-inner"></div>
+      </aside>
+    </main>
+
+    <footer class="reader-controls">
+      <div class="control-row">
+        <button id="rewind-btn" class="icon-btn" aria-label="Rewind 10 words">&#x23EA;</button>
+        <button id="play-btn" class="icon-btn big" aria-label="Play">&#x25B6;</button>
+        <button id="forward-btn" class="icon-btn" aria-label="Forward 10 words">&#x23E9;</button>
+      </div>
+      <div class="control-row slider-row">
+        <label for="wpm-slider" class="slider-label">
+          Speed: <span id="wpm-value">500</span> wpm
+        </label>
+        <input id="wpm-slider" type="range" min="100" max="1200" step="10" value="500" />
+      </div>
+    </footer>
+  </section>
+</div>
+
+<template id="book-item-template">
+  <li class="book-item">
+    <button class="book-main">
+      <div class="book-cover"><img alt="" loading="lazy" /></div>
+      <div class="book-info">
+        <div class="book-title"></div>
+        <div class="book-author"></div>
+        <div class="book-meta">
+          <span class="book-wordcount"></span>
+          <span class="book-progress"></span>
+          <span class="book-timeleft"></span>
+        </div>
+        <div class="book-progressbar"><div class="book-progressbar-fill"></div></div>
+      </div>
+    </button>
+    <button class="book-delete icon-btn" aria-label="Delete book">&#x2715;</button>
+  </li>
+</template>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (window['pdfjsLib']) {
+    window['pdfjsLib'].GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
+<script src="db.js"></script>
+<script src="parsers.js"></script>
+<script src="reader.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

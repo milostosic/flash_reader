@@ -1,0 +1,792 @@
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f0f12;
+  --bg-elevated: #1a1a20;
+  --bg-hover: #24242c;
+  --text: #e8e8ee;
+  --text-muted: #8a8a95;
+  --accent: #3F4389;
+  --accent-soft: #5a5ea6;
+  --border: #2a2a33;
+  --success: #4ade80;
+  --pivot-line: #2a2a33;
+  --pivot-color: #A12A2C;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --radius: 12px;
+  --transition: 150ms ease;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f7f7f9;
+  --bg-elevated: #ffffff;
+  --bg-hover: #eeeef2;
+  --text: #1a1a1f;
+  --text-muted: #666672;
+  --border: #e0e0e6;
+  --pivot-line: #d8d8de;
+  --pivot-color: #A12A2C;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Soft, warm pastel — cream page with a dusty-lavender accent and rose pivot. */
+:root[data-theme="pastel-light"] {
+  color-scheme: light;
+  --bg: #FAF3EE;
+  --bg-elevated: #FFFBF6;
+  --bg-hover: #F2E6DA;
+  --text: #3D3748;
+  --text-muted: #8B8197;
+  --accent: #8D95D6;
+  --accent-soft: #AEB5E5;
+  --border: #EADFD3;
+  --pivot-line: #DCCFC2;
+  --pivot-color: #C9646B;
+  --shadow: 0 2px 14px rgba(80, 60, 80, 0.10);
+}
+
+/* Muted plum/dusk with a soft lavender accent and pastel rose pivot. */
+:root[data-theme="pastel-dark"] {
+  color-scheme: dark;
+  --bg: #221C30;
+  --bg-elevated: #2D263F;
+  --bg-hover: #383051;
+  --text: #EEE5DB;
+  --text-muted: #A69CB0;
+  --accent: #B7A9E0;
+  --accent-soft: #CAC0EA;
+  --border: #3A334F;
+  --pivot-line: #3A334F;
+  --pivot-color: #E89BA0;
+  --shadow: 0 4px 28px rgba(0, 0, 0, 0.45);
+}
+
+* { box-sizing: border-box; }
+
+/* The HTML `hidden` attribute should always win over CSS display rules. */
+[hidden] { display: none !important; }
+
+/* ---------- Theme selector dropdown ---------- */
+.theme-select {
+  position: relative;
+}
+.theme-panel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  min-width: 160px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.3rem;
+  box-shadow: var(--shadow);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.theme-panel[hidden] { display: none; }
+.theme-panel > button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.7rem;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  text-align: left;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.theme-panel > button:hover {
+  background: var(--bg-hover);
+}
+.theme-panel > button.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+.theme-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  height: 100%;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+#app {
+  height: 100dvh;
+  width: 100%;
+  position: relative;
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.view.active { display: flex; }
+
+/* ---------- Library ---------- */
+
+.lib-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.lib-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.lib-logo {
+  width: 28px;
+  height: 28px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.lib-header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.book-search {
+  flex: 1 1 220px;
+  max-width: 360px;
+  padding: 0.5rem 0.9rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  min-width: 0;
+}
+.book-search:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.book-search::placeholder { color: var(--text-muted); }
+.book-search::-webkit-search-cancel-button { cursor: pointer; }
+
+.lib-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  user-select: none;
+}
+.btn:hover { background: var(--bg-hover); }
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.btn.primary:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-soft);
+}
+
+.upload-status {
+  margin: 0.75rem 1.5rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.upload-status.error { border-color: var(--accent); color: var(--accent); }
+
+.book-list {
+  list-style: none;
+  margin: 0;
+  padding: 1rem 1.5rem 2rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.book-item {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+.book-item:hover { border-color: var(--accent); }
+
+.book-main {
+  flex: 1;
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  text-align: left;
+  padding: 0.9rem 1.15rem;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  min-width: 0;
+}
+.book-main:hover { background: var(--bg-hover); }
+
+.book-cover {
+  width: 48px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.book-cover-empty {
+  border: 1px dashed var(--border);
+}
+
+.book-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.book-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-author {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.45rem;
+}
+
+.book-progressbar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.book-progressbar-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width var(--transition);
+}
+
+.book-delete {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0 1rem;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+.book-delete:hover {
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.empty-state {
+  padding: 1.25rem 1.5rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+.empty-state[hidden] { display: none; }
+.empty-state h2 {
+  color: var(--text);
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.empty-state p { margin: 0.15rem 0; font-size: 0.92rem; }
+.empty-state .muted { font-size: 0.82rem; opacity: 0.7; }
+
+.drop-overlay {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  width: min(240px, 30vw);
+  z-index: 999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.drop-overlay.active { display: flex; }
+
+.drop-overlay-inner {
+  padding: 1rem 1.25rem;
+  color: var(--text);
+  text-align: center;
+}
+.drop-overlay-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.drop-overlay-formats {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 640px) {
+  .drop-overlay {
+    top: auto;
+    right: 0.75rem;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    width: auto;
+    height: 4rem;
+  }
+}
+
+/* ---------- Reader ---------- */
+
+.reader-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  contain: layout style;
+}
+.reader-title {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+.reader-progress {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  min-width: 3ch;
+  text-align: right;
+}
+
+.icon-btn {
+  background: transparent;
+  color: var(--text);
+  border: none;
+  font-size: 1.1rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background var(--transition);
+  font-family: var(--sans);
+}
+.icon-btn:hover { background: var(--bg-hover); }
+.icon-btn.big {
+  font-size: 1.75rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  width: 4rem;
+  height: 4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn.big:hover { background: var(--accent-soft); }
+
+.reader-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.word-display {
+  font-family: var(--mono);
+  /* Per-breakpoint size so even 18-char words don't clip on narrow flex slots
+     — the overall clamp shrinks below `.word-display` media override. */
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: baseline;
+  line-height: 1.1;
+  white-space: pre;
+  /* The pivot column is at the center; before right-aligns, after left-aligns */
+  width: 100%;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+  /* Backdrop fades to transparent at the horizontal edges so the cover
+     (left) and text preview (right) remain visible past the flashing word. */
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--bg) 22%,
+    var(--bg) 78%,
+    transparent 100%
+  );
+  padding: 0.4rem 0;
+  /* Critical: isolate layout so per-tick textContent updates don't dirty
+     the entire document's layout tree. */
+  contain: layout style;
+}
+
+.word-before,
+.word-after {
+  flex: 1 0 0;
+  min-width: 0;
+  white-space: pre;
+  overflow: hidden;
+  display: inline-block;
+}
+.word-before { text-align: right; direction: ltr; }
+.word-after { text-align: left; }
+
+.word-pivot {
+  color: var(--pivot-color);
+  flex: 0 0 auto;
+}
+
+.guide-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: 1px;
+  height: 1.5rem;
+  background: var(--pivot-line);
+  pointer-events: none;
+}
+/* Second guide mark below */
+.guide-line::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(100% + 2.2rem);
+  width: 1px;
+  height: 1.5rem;
+  background: var(--pivot-line);
+}
+
+/* Linear progress bar below the reader header */
+.progress-bar {
+  height: 3px;
+  background: var(--border);
+  flex-shrink: 0;
+  contain: strict;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 120ms linear;
+}
+
+.reader-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  contain: layout style;
+}
+.reader-stat {
+  white-space: nowrap;
+}
+.reader-stat-label {
+  opacity: 0.65;
+}
+.reader-stat-sep {
+  opacity: 0.4;
+}
+#stat-read, #stat-left, #stat-total {
+  color: var(--text);
+}
+
+/* Left-docked book cover: mirror layout to the text preview on the right,
+   faded so it sits in the background behind the flashing word. */
+.cover-side {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  bottom: 1rem;
+  width: clamp(140px, 20vw, 400px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.36;
+  pointer-events: none;
+  z-index: 1;
+}
+.cover-side img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: block;
+}
+/* Phone: shrink to a small thumbnail anchored to the top-left so it's
+   visible without competing for horizontal space with the flashing word. */
+@media (max-width: 640px) {
+  .cover-side {
+    left: 0.5rem;
+    top: 0.5rem;
+    bottom: auto;
+    width: clamp(56px, 16vw, 96px);
+    height: clamp(84px, 24vw, 144px);
+    opacity: 0.32;
+  }
+}
+
+/* Right-docked text preview column: fills the stage vertically,
+   max 20vw wide. Uses native overflow-y scrolling so the browser
+   renders a real scrollbar; scrollTop is driven from JS to keep
+   the current word at the vertical center. */
+.text-preview {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  bottom: 1rem;
+  width: clamp(140px, 20vw, 400px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: var(--shadow);
+  z-index: 1;
+  /* Bound layout work: any reflow inside the preview's 100K+ spans stops
+     at this element and can't force a relayout of the outer document. */
+  contain: layout style paint;
+  /* scroll-behavior intentionally NOT smooth: at high WPM we set scrollTop
+     once per tick, and smooth scrolling queues conflicting animations. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+/* Phone: shrink and use a thinner scrollbar. The preview is still useful
+   as an orientation aid on narrow screens; we just need to leave enough
+   horizontal room for the flashing word. */
+@media (max-width: 640px) {
+  .text-preview {
+    right: 0.5rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: clamp(100px, 26vw, 160px);
+  }
+  .text-preview-inner {
+    padding: 0.45rem 0.6rem;
+    font-size: 10px;
+    line-height: 15px;
+  }
+  .text-preview::-webkit-scrollbar { width: 4px; }
+}
+.text-preview::-webkit-scrollbar {
+  width: 8px;
+}
+.text-preview::-webkit-scrollbar-track {
+  background: transparent;
+}
+.text-preview::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+.text-preview::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.text-preview-inner {
+  padding: 0.6rem 0.9rem;
+  font-size: 11px;
+  line-height: 17px;
+  color: var(--text-muted);
+  font-family: var(--sans);
+}
+
+/* Chunk container: each holds ~100 words and is individually skippable.
+   `content-visibility: auto` lets Chrome bypass style/layout/paint entirely
+   when the chunk isn't near the viewport, which shrinks per-frame work on
+   a 100K-word book from O(all spans) to O(visible spans).
+   `contain-intrinsic-size: auto 400px` is the placeholder size the browser
+   reserves for skipped chunks; `auto` means "remember the real size after
+   the first time it's rendered", so the scrollbar stays accurate. */
+.preview-chunk {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}
+
+.text-preview .preview-word {
+  display: inline;
+  white-space: normal;
+  cursor: pointer;
+}
+.text-preview .preview-word:hover {
+  background: var(--bg-hover);
+  border-radius: 3px;
+}
+/* NOTE: keep this style PAINT-ONLY (color, text-shadow). Adding anything
+   that changes layout (padding, font-weight, outline, border) would dirty
+   layout on every class toggle, defeating the cached-offset hot path. */
+.text-preview .preview-word.current {
+  color: var(--accent);
+  text-shadow: 0 0 1px var(--accent);
+}
+
+
+
+.reader-controls {
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.slider-row {
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.slider-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.slider-label #wpm-value {
+  color: var(--text);
+  font-weight: 600;
+}
+
+#wpm-slider {
+  width: 100%;
+  max-width: 480px;
+  accent-color: var(--accent);
+  height: 2rem;
+}
+
+/* ---------- Mobile tweaks ---------- */
+
+@media (max-width: 640px) {
+  .reader-stage { padding: 0.5rem; }
+  .word-display {
+    font-size: clamp(1.35rem, 7vw, 2.75rem);
+    padding: 0.3rem 0;
+  }
+}
+@media (max-width: 520px) {
+  .lib-header { padding: 1rem; }
+  .book-list { padding: 0.75rem 1rem 1.5rem; }
+  .reader-header { padding: 0.5rem 0.75rem; }
+  .reader-controls { padding: 0.75rem 1rem 1.25rem; }
+}
+
+/* Disable pull-to-refresh and text selection in reader */
+#reader-view {
+  user-select: none;
+  -webkit-user-select: none;
+}

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Flash Reader">
+  <title>Flash Reader</title>
+  <style>
+    .book-a   { fill: #3F4389; }
+    .book-b   { fill: #5A5EA6; }
+    .page     { fill: #EEE8FF; }
+    .bookmark { fill: #A12A2C; }
+    /* Brighter palette when rendered on dark browser chrome. */
+    @media (prefers-color-scheme: dark) {
+      .book-a   { fill: #8E96EC; }
+      .book-b   { fill: #ADB4F3; }
+      .page     { fill: #F5F0FF; }
+      .bookmark { fill: #F1555A; }
+    }
+  </style>
+
+  <!-- Three stacked books of varying widths, each with a thin page edge highlight -->
+  <!-- Bottom book -->
+  <rect class="book-a" x="9"  y="45" width="46" height="11" rx="2.2"/>
+  <rect class="page"   x="9"  y="51" width="46" height="1.4"/>
+  <!-- Middle book (accent tone, slightly wider to read as a different volume) -->
+  <rect class="book-b" x="6"  y="31" width="52" height="11" rx="2.2"/>
+  <rect class="page"   x="6"  y="37" width="52" height="1.4"/>
+  <!-- Top book -->
+  <rect class="book-a" x="12" y="17" width="40" height="11" rx="2.2"/>
+  <rect class="page"   x="12" y="23" width="40" height="1.4"/>
+
+  <!-- Red ribbon bookmark with classic V-notch tail, hanging out of the top book -->
+  <path class="bookmark" d="M 36 9 L 42 9 L 42 25 L 39 21.5 L 36 25 Z"/>
+</svg>
