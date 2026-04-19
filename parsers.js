@@ -444,6 +444,40 @@
       return { title: titleLine[1].trim(), author: authorLine[1].trim() };
     }
 
+    // 2b. Typeset title-page layout where each element sits on its own line:
+    //
+    //       Poker without
+    //       Cards
+    //       A Consciousness Thriller
+    //       by
+    //       Ben Mack
+    //       Copyright 2004...
+    //
+    //     Running line-by-line lets the author capture terminate at the line
+    //     break, which keeps trailing "Copyright" / "All Rights Reserved" /
+    //     publisher text out of it — the flattened regex below is greedy and
+    //     would otherwise swallow them.
+    const lines = head.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    for (let i = 0; i < lines.length - 1; i++) {
+      // Accept "by" alone on the line or trailing another word (e.g.
+      // "A Consciousness Thriller by") — both are common when a PDF reflows
+      // the title page.
+      const byMatch = lines[i].match(/^(?:(.+?)\s+)?(?:by|By|BY)[.,]?\s*$/);
+      if (!byMatch) continue;
+      const nameMatch = lines[i + 1].match(
+        /^([A-Z][A-Za-z.\-']+(?:\s+[A-Z][A-Za-z.\-']*){0,4})\s*[,.]?\s*$/
+      );
+      if (!nameMatch) continue;
+      const author = nameMatch[1].trim();
+      const titleParts = lines.slice(0, i);
+      if (byMatch[1]) titleParts.push(byMatch[1]);
+      const title = cleanExtractedTitle(titleParts.join(' '));
+      if (title.length >= 3 && author.length >= 3 &&
+          !/^(copyright|©|all rights reserved|published)/i.test(title)) {
+        return { title, author };
+      }
+    }
+
     // 3. Generic "Title ... by Author" in the opening prose. Normalise the
     //    whitespace first because PDF extraction often preserves every \n.
     const flat = head.replace(/\s+/g, ' ').trim();
